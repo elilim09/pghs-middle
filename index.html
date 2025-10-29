@@ -3,138 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>TM 제스처로 움직이는 캐릭터</title>
+  <title>TM 제스처로 움직이는 캐릭터 – Fix</title>
 
-  <!-- TensorFlow.js & Teachable Machine Image -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
   <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111827cc;
-      --text: #e5e7eb;
-      --accent: #60a5fa;
-      --good: #22c55e;
-      --warn: #f59e0b;
-      --bad: #ef4444;
-    }
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0; height: 100%;
-      background: radial-gradient(1200px 600px at 10% 10%, #1f2937 0, #0b1020 40%, #0a0d1a 100%);
-      color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Apple SD Gothic Neo, "맑은 고딕", "Malgun Gothic", Arial, "Helvetica Neue", Helvetica, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji";
-    }
-    #app {
-      max-width: 960px; margin: 0 auto; padding: 16px; height: 100%;
-      display: grid; grid-template-rows: auto 1fr auto; gap: 12px;
-    }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    header h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
-    #btnStart {
-      border: 0; padding: 10px 14px; border-radius: 10px;
-      background: linear-gradient(135deg, #2563eb, #22d3ee);
-      color: white; font-weight: 700; cursor: pointer;
-      box-shadow: 0 6px 16px #0006; transition: transform .1s ease, filter .2s ease;
-    }
-    #btnStart:active { transform: translateY(1px); }
-    #stageWrap {
-      position: relative; border-radius: 14px; overflow: hidden;
-      outline: 1px solid #334155; box-shadow: inset 0 0 0 1px #000a, 0 12px 30px #0008;
-      background: linear-gradient(180deg, #0b1222 0%, #0a0f1c 100%);
-      min-height: 360px;
-    }
-    canvas { display: block; width: 100%; height: 100%; }
-    /* 디버그/상태 패널 (겹침 방지: 캔버스 안쪽 좌상단 16px 패딩) */
-    #hud {
-      position: absolute; left: 16px; top: 16px;
-      background: var(--panel); backdrop-filter: blur(6px);
-      border: 1px solid #374151aa; border-radius: 12px; padding: 10px 12px;
-      font-size: 12px; line-height: 1.35; min-width: 200px;
-      user-select: none; pointer-events: none;
-    }
-    #hud .row { display: flex; justify-content: space-between; gap: 8px; }
-    #hud .label { color: #9ca3af; }
-    #hud .value { font-weight: 700; }
-    #hud .chip {
-      display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 11px;
-      background: #0b2a1a; color: #9ef2bd; border: 1px solid #14532d;
-    }
-    #legend {
-      position: absolute; right: 16px; top: 16px; pointer-events: none;
-      background: var(--panel); border: 1px solid #374151aa; border-radius: 12px; padding: 10px 12px; font-size: 12px;
-    }
-    #legend h3 { margin: 0 0 6px 0; font-size: 12px; opacity: .9; }
-    #legend .bar { height: 8px; background: #1f2937; border-radius: 6px; overflow: hidden; margin: 4px 0 10px; }
-    #legend .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #22d3ee, #2563eb); width: 0%; }
-    #legend .item { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 8px; }
-    #legend .item .name { color: #cbd5e1; }
-    #legend .item .pct { color: #94a3b8; font-variant-numeric: tabular-nums; }
-    footer {
-      display: grid; gap: 6px; font-size: 12px; color: #94a3b8;
-    }
-    code.snip { background: #111827; padding: 2px 6px; border-radius: 6px; border: 1px solid #374151; }
-    #video { position: absolute; inset: 0; opacity: 0; width: 1px; height: 1px; }
+    :root { --text:#e5e7eb; --panel:#111827cc; }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:#0b0f1a;color:var(--text);font-family:system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "맑은 고딕"}
+    #app{max-width:960px;margin:0 auto;padding:16px;height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:12px}
+    header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    h1{font-size:18px;margin:0;font-weight:800}
+    button, label{font-size:14px}
+    #btnStart{border:0;padding:10px 14px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#22d3ee);color:#fff;font-weight:700;cursor:pointer}
+    #stageWrap{position:relative;border-radius:14px;overflow:hidden;outline:1px solid #334155;min-height:360px;background:#0a0f1c;box-shadow:inset 0 0 0 1px #000a,0 12px 30px #0008}
+    canvas{display:block;width:100%;height:100%}
+    #hud{position:absolute;left:16px;top:16px;background:var(--panel);backdrop-filter:blur(6px);border:1px solid #374151aa;border-radius:12px;padding:10px 12px;font-size:12px;min-width:200px;user-select:none;pointer-events:none}
+    #hud .row{display:flex;justify-content:space-between;gap:8px}
+    #hud .label{color:#9ca3af}
+    #hud .chip{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;background:#052e1a;color:#86efac;border:1px solid #14532d}
+    #legend{position:absolute;right:16px;top:16px;background:var(--panel);border:1px solid #374151aa;border-radius:12px;padding:10px 12px;font-size:12px}
+    #legend h3{margin:0 0 6px 0;font-size:12px;opacity:.9}
+    #legend .item{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:8px}
+    #legend .bar{height:8px;background:#1f2937;border-radius:6px;overflow:hidden;margin:4px 0 10px}
+    #legend .bar>i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#2563eb);width:0%}
+    .videoDebug{position:absolute;bottom:12px;left:12px;padding:4px 8px;border-radius:8px;background:#0007;font-size:11px}
+    #videoCanvas{position:absolute;inset:0;opacity:0;pointer-events:none} /* tm.Webcam 캔버스 숨김 */
+    footer{font-size:12px;color:#94a3b8;display:grid;gap:6px}
+    code.snip{background:#111827;padding:2px 6px;border-radius:6px;border:1px solid #374151}
   </style>
 </head>
 <body>
   <div id="app">
     <header>
-      <h1>Teachable Machine 제스처로 캐릭터 컨트롤</h1>
+      <h1>Teachable Machine 제스처 컨트롤 – 안정화 버전</h1>
       <button id="btnStart">카메라 & 모델 시작</button>
+      <label><input type="checkbox" id="flipToggle" checked /> 미러(좌우 반전) 사용</label>
+      <label><input type="checkbox" id="showVideo" /> 입력영상 보기</label>
     </header>
 
     <div id="stageWrap" aria-label="게임 화면">
       <canvas id="stage" width="960" height="540"></canvas>
-      <div id="hud" aria-live="polite" aria-atomic="true">
+      <!-- 디버그 HUD -->
+      <div id="hud">
         <div class="row"><span class="label">상태</span><span class="value" id="stateChip"><span class="chip">대기</span></span></div>
         <div class="row"><span class="label">동작</span><span class="value" id="actionLabel">-</span></div>
         <div class="row"><span class="label">FPS</span><span class="value" id="fps">-</span></div>
       </div>
+      <!-- 확률 막대 -->
       <div id="legend">
         <h3>예측 확률</h3>
-        <div class="item"><span class="name">left</span><div class="bar"><i id="p-left"></i></div><span class="pct" id="t-left">0%</span></div>
-        <div class="item"><span class="name">right</span><div class="bar"><i id="p-right"></i></div><span class="pct" id="t-right">0%</span></div>
-        <div class="item"><span class="name">jump</span><div class="bar"><i id="p-jump"></i></div><span class="pct" id="t-jump">0%</span></div>
-        <div class="item"><span class="name">none</span><div class="bar"><i id="p-none"></i></div><span class="pct" id="t-none">0%</span></div>
+        <div class="item"><span>left</span><div class="bar"><i id="p-left"></i></div><span id="t-left">0%</span></div>
+        <div class="item"><span>right</span><div class="bar"><i id="p-right"></i></div><span id="t-right">0%</span></div>
+        <div class="item"><span>jump</span><div class="bar"><i id="p-jump"></i></div><span id="t-jump">0%</span></div>
+        <div class="item"><span>none</span><div class="bar"><i id="p-none"></i></div><span id="t-none">0%</span></div>
       </div>
-      <!-- 비디오 소스(숨김) -->
-      <video id="video" playsinline muted autoplay></video>
+
+      <!-- tmImage.Webcam이 내부적으로 관리하는 캔버스를 우리가 보여줄 수 있게 훅 -->
+      <canvas id="videoCanvas"></canvas>
+      <div class="videoDebug">영상 디버그</div>
     </div>
 
     <footer>
-      <div>클래스 이름은 left / right / jump / none 으로 가정했어. Teachable Machine 모델: <code class="snip">EvIZbroaE</code>.</div>
-      <div>GitHub Pages에서 카메라 권한을 받으려면 HTTPS가 필요해. 저장소 설정에서 Pages 활성화 후 주소로 접속하면 권한 팝업이 뜬다.</div>
-      <div>민감도·속도는 아래 상수에서 조절 가능: <code class="snip">SPEED, JUMP_POWER, THRESHOLD, PREDICT_EVERY_N_FRAMES</code>.</div>
+      <div>모델: <code class="snip">https://teachablemachine.withgoogle.com/models/EvIZbroaE/</code></div>
+      <div>왼쪽/오른쪽이 반대로 나오면 ‘미러’ 체크를 바꿔보세요(학습 시 거울모드 여부와 일치해야 함).</div>
+      <div>세밀 조정은 상단 코드의 <code class="snip">THRESHOLD, EMA_ALPHA, CLASS_BIAS</code>를 수정.</div>
     </footer>
   </div>
 
   <script>
-    // ========= 설정값 =========
+    // ===== 설정 =====
     const MODEL_BASE = "https://teachablemachine.withgoogle.com/models/EvIZbroaE/";
     const MODEL_URL = MODEL_BASE + "model.json";
     const METADATA_URL = MODEL_BASE + "metadata.json";
 
-    const SPEED = 6;               // 좌우 이동 속도 (px/frame)
-    const FRICTION = 0.85;         // none일 때 감속
-    const GRAVITY = 0.9;           // 중력 가속
-    const JUMP_POWER = 16;         // 점프 초기 속도
-    const JUMP_COOLDOWN_MS = 500;  // 점프 중복 방지
-    const THRESHOLD = 0.70;        // 동작 확정 임계값 (소프트맥스 확률)
-    const PREDICT_EVERY_N_FRAMES = 2; // 성능 최적화용: N프레임마다 예측
+    // 임계값/스무딩/바이어스 조정
+    const THRESHOLD = 0.60;       // 동작 확정 임계값
+    const EMA_ALPHA = 0.30;       // 확률 스무딩(클수록 반응 빠름)
+    const CLASS_BIAS = {          // none 약화, jump 살짝 강화
+      left: 1.00,
+      right: 1.00,
+      jump: 1.12,
+      none: 0.82
+    };
 
-    // ========= 전역 =========
-    let model, maxPredictions;
-    let videoStream;
+    // 물리/게임
+    const SPEED = 6, FRICTION = 0.85, GRAVITY = 0.9, JUMP_POWER = 16, JUMP_COOLDOWN_MS = 500;
+
+    // ===== 전역 =====
+    let model, maxPredictions, webcam;
     let started = false;
 
-    // 게임 상태
     const canvas = document.getElementById("stage");
     const ctx = canvas.getContext("2d");
+    const videoCanvas = document.getElementById("videoCanvas");
+    const vctx = videoCanvas.getContext("2d");
 
-    const stateChip = document.getElementById("stateChip");
-    const actionLabel = document.getElementById("actionLabel");
     const fpsLabel = document.getElementById("fps");
+    const actionLabel = document.getElementById("actionLabel");
+    const stateChip = document.getElementById("stateChip");
+    const flipToggle = document.getElementById("flipToggle");
+    const showVideo = document.getElementById("showVideo");
 
     const barEls = {
       left:  document.getElementById("p-left"),
@@ -149,127 +119,136 @@
       none:  document.getElementById("t-none"),
     };
 
-    const video = document.getElementById("video");
+    const player = { x: canvas.width*0.5, y: 0, vx: 0, vy: 0, size: 44, onGround: false, lastJumpAt: 0 };
+    const groundY = canvas.height - 64;
 
-    // 캐릭터(이모지 아이콘으로 간단 구현; 필요시 스프라이트로 교체 가능)
-    const player = {
-      x: canvas.width * 0.5,
-      y: 0,         // 초기엔 바닥 위로 스폰
-      vx: 0,
-      vy: 0,
-      size: 44,     // 렌더 크기
-      onGround: false,
-      lastJumpAt: 0
-    };
-    const groundY = canvas.height - 64; // 바닥 위치
+    // 확률 스무딩
+    const ema = { left:0, right:0, jump:0, none:0 };
 
-    // FPS 측정
-    let lastTime = performance.now();
-    let frameCount = 0, fps = 0;
-    let predictSkipper = 0;
+    // FPS
+    let lastTime = performance.now(), frameCount = 0, fps = 0;
 
-    // EMA(이동평균)로 클래스 신뢰도 안정화
-    const ema = { left: 0, right: 0, jump: 0, none: 0 };
-    const EMA_ALPHA = 0.25;
-
-    function setChip(text, ok = false) {
-      stateChip.innerHTML = `<span class="chip" style="${
-        ok ? 'background:#052e1a;color:#86efac;border:1px solid #14532d' : ''
-      }">${text}</span>`;
-    }
-
-    // 반응형 캔버스 리사이즈
+    // 반응형 캔버스
     function fitCanvas() {
       const wrap = document.getElementById("stageWrap");
       const w = wrap.clientWidth;
       const h = Math.max(360, Math.round(w * 9 / 16));
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = w; canvas.height = h;
+      videoCanvas.width = Math.min(640, w * 0.4);
+      videoCanvas.height = Math.round(videoCanvas.width * 3 / 4);
     }
     new ResizeObserver(fitCanvas).observe(document.getElementById("stageWrap"));
     fitCanvas();
+    player.y = groundY - player.size/2;
 
-    // 카메라 + 모델 초기화
+    function setChip(text) { stateChip.innerHTML = `<span class="chip">${text}</span>`; }
+
+    document.getElementById("btnStart").addEventListener("click", init);
+    flipToggle.addEventListener("change", async () => {
+      if (webcam) {
+        webcam.flip = flipToggle.checked;
+        // flip이 바뀌면 내부 캔버스 변환 재적용을 위해 한 프레임 쉬어감
+        await new Promise(r => setTimeout(r, 50));
+      }
+    });
+    showVideo.addEventListener("change", () => {
+      videoCanvas.style.opacity = showVideo.checked ? 1 : 0;
+    });
+
     async function init() {
       if (started) return;
-      setChip("권한 요청 중…");
+      setChip("카메라 준비…");
       try {
-        // HTTPS 환경에서만 접근 가능 (GitHub Pages OK)
-        videoStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-          audio: false
-        });
-        video.srcObject = videoStream;
-        await video.play();
+        // Teachable Machine 방식의 Webcam (flip 옵션 제공)
+        webcam = new tmImage.Webcam(640, 480, flipToggle.checked); // width, height, flip
+        await webcam.setup({ facingMode: "user" }); // 권한 요청
+        await webcam.play();
 
-        setChip("모델 로드 중…");
-
+        setChip("모델 로드…");
         model = await tmImage.load(MODEL_URL, METADATA_URL);
         maxPredictions = model.getTotalClasses();
 
-        setChip("준비 완료", true);
         started = true;
-        requestAnimationFrame(loop);
-      } catch (err) {
-        console.error(err);
-        setChip("오류: 카메라/모델 실패");
-        alert("카메라 권한 또는 모델 로드에 실패했습니다.\n브라우저가 HTTPS로 열렸는지 확인하세요.");
+        setChip("준비 완료");
+        window.requestAnimationFrame(loop);
+      } catch (e) {
+        console.error(e);
+        setChip("오류");
+        alert("카메라/모델을 초기화하지 못했습니다. HTTPS 및 권한을 확인하세요.");
       }
     }
 
-    // 예측
-    async function predict() {
-      const predictions = await model.predict(video, false);
-      // {className, probability} 배열
-      let best = { className: "none", probability: 0 };
-      const probs = { left: 0, right: 0, jump: 0, none: 0 };
-      for (const p of predictions) {
-        const name = (p.className || "").toLowerCase();
-        if (probs[name] !== undefined) probs[name] = p.probability;
-        if (p.probability > best.probability) best = { className: name, probability: p.probability };
-      }
-      // EMA 업데이트
-      for (const k of Object.keys(ema)) {
-        ema[k] = (1 - EMA_ALPHA) * ema[k] + EMA_ALPHA * (probs[k] || 0);
-      }
-      // UI 막대 업데이트
-      for (const k of ["left","right","jump","none"]) {
-        const pct = Math.round((ema[k] || 0) * 100);
-        barEls[k].style.width = pct + "%";
-        pctEls[k].textContent = pct + "%";
-      }
-      return { best, probs, ema: {...ema} };
-    }
-
-    // 게임 루프
     async function loop(now) {
-      // FPS 계산
+      // 웹캠 프레임 업데이트
+      if (webcam) webcam.update();
+
+      // FPS
       frameCount++;
       const dt = now - lastTime;
       if (dt >= 500) {
         fps = Math.round((frameCount * 1000) / dt);
-        frameCount = 0; lastTime = now;
         fpsLabel.textContent = String(fps);
+        frameCount = 0; lastTime = now;
       }
 
-      // N프레임마다만 예측해서 성능 확보
-      if (predictSkipper++ % PREDICT_EVERY_N_FRAMES === 0 && model && started) {
+      // 예측
+      if (model && webcam) {
         try {
-          const { best, ema: smoothed } = await predict();
-          // 스무딩된 신뢰도 기준으로 동작 확정
-          let action = "none";
-          let conf = 0;
-          for (const k of ["left","right","jump","none"]) {
-            if (smoothed[k] > conf) { conf = smoothed[k]; action = k; }
+          const predictions = await model.predict(webcam.canvas, false);
+          const probs = { left:0, right:0, jump:0, none:0 };
+          for (const p of predictions) {
+            const name = (p.className || "").toLowerCase();
+            if (probs[name] !== undefined) probs[name] = p.probability;
           }
-          if (conf < THRESHOLD) action = "none";
+
+          // 클래스 바이어스 적용
+          for (const k in probs) {
+            probs[k] = Math.min(1, Math.max(0, probs[k] * (CLASS_BIAS[k] ?? 1)));
+          }
+
+          // 스무딩
+          for (const k of Object.keys(ema)) {
+            ema[k] = (1 - EMA_ALPHA) * ema[k] + EMA_ALPHA * (probs[k] || 0);
+          }
+
+          // UI 막대
+          for (const k of ["left","right","jump","none"]) {
+            const pct = Math.round((ema[k] || 0) * 100);
+            barEls[k].style.width = pct + "%";
+            pctEls[k].textContent = pct + "%";
+          }
+
+          // 액션 결정
+          let action = "none";
+          // jump는 짧아도 우선권 부여
+          if (ema.jump >= 0.50) {
+            action = "jump";
+          } else {
+            let bestK = "none", bestV = 0;
+            for (const k of ["left","right","none"]) {
+              if ((ema[k] || 0) > bestV) { bestV = ema[k]; bestK = k; }
+            }
+            action = (bestV >= THRESHOLD) ? bestK : "none";
+          }
+
           applyAction(action);
-          actionLabel.textContent = `${action}${conf ? ` (${Math.round(conf*100)}%)` : ""}`;
+          const conf = Math.round(Math.max(ema[action] || 0, 0) * 100);
+          actionLabel.textContent = `${action} (${conf}%)`;
         } catch (e) {
           console.warn("predict error:", e);
         }
       }
 
+      // 입력 영상 디버그 미리보기
+      if (webcam) {
+        vctx.save();
+        vctx.clearRect(0,0,videoCanvas.width,videoCanvas.height);
+        // webcam.canvas는 이미 flip 적용되었음. 그대로 축소 렌더링
+        vctx.drawImage(webcam.canvas, 0, 0, videoCanvas.width, videoCanvas.height);
+        vctx.restore();
+      }
+
+      // 게임 갱신/렌더
       updatePhysics();
       render();
 
@@ -288,90 +267,57 @@
           player.onGround = false;
           player.lastJumpAt = now;
         }
-      } else { // none
+      } else {
+        // none → 감속
         player.vx *= FRICTION;
         if (Math.abs(player.vx) < 0.1) player.vx = 0;
       }
     }
 
     function updatePhysics() {
-      // 중력
       player.vy += GRAVITY;
-
-      // 위치 업데이트
       player.x += player.vx;
       player.y += player.vy;
 
-      // 바닥 충돌
       const size = player.size;
       const bottom = groundY - size/2;
-      if (player.y > bottom) {
-        player.y = bottom;
-        player.vy = 0;
-        player.onGround = true;
-      } else {
-        player.onGround = false;
-      }
+      if (player.y > bottom) { player.y = bottom; player.vy = 0; player.onGround = true; } else { player.onGround = false; }
 
-      // 좌우 벽
-      const minX = size/2 + 10;
-      const maxX = canvas.width - size/2 - 10;
+      const minX = size/2 + 10, maxX = canvas.width - size/2 - 10;
       if (player.x < minX) { player.x = minX; player.vx = 0; }
       if (player.x > maxX) { player.x = maxX; player.vx = 0; }
     }
 
-    // 배경과 오브젝트 렌더링
     function render() {
       const w = canvas.width, h = canvas.height;
-
-      // 배경
       ctx.clearRect(0,0,w,h);
-      // 하늘 그라디언트 느낌
+
       const g = ctx.createLinearGradient(0,0,0,h);
       g.addColorStop(0,"#0b1222");
       g.addColorStop(1,"#0a0f1c");
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
 
-      // 바닥
+      // ground
+      const groundYLocal = groundY;
       ctx.fillStyle = "#1f2937";
-      ctx.fillRect(0, groundY + 24, w, h - (groundY + 24));
-      // 바닥 라인
+      ctx.fillRect(0, groundYLocal + 24, w, h - (groundYLocal + 24));
       ctx.fillStyle = "#334155";
-      ctx.fillRect(0, groundY, w, 4);
+      ctx.fillRect(0, groundYLocal, w, 4);
 
-      // 캐릭터(둥근 칩 + 이모지)
-      const r = player.size / 2;
-      const cx = player.x, cy = player.y;
-      // 본체 그림자
+      // shadow
+      const r = player.size/2, cx = player.x, cy = player.y;
       ctx.globalAlpha = 0.25;
-      ctx.beginPath();
-      ctx.ellipse(cx, groundY + 20, r*0.9, r*0.4, 0, 0, Math.PI*2);
-      ctx.fillStyle = "#000";
-      ctx.fill();
-      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.ellipse(cx, groundYLocal + 20, r*0.9, r*0.4, 0, 0, Math.PI*2); ctx.fillStyle = "#000"; ctx.fill(); ctx.globalAlpha = 1;
 
-      // 본체
+      // body
       const grd = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
-      grd.addColorStop(0, "#60a5fa");
-      grd.addColorStop(1, "#22d3ee");
-      ctx.fillStyle = grd;
-      ctx.strokeStyle = "#0b1020";
-      ctx.lineWidth = 2;
-      roundRect(ctx, cx - r, cy - r, player.size, player.size, 12);
-      ctx.fill();
-      ctx.stroke();
+      grd.addColorStop(0, "#60a5fa"); grd.addColorStop(1, "#22d3ee");
+      ctx.fillStyle = grd; ctx.strokeStyle = "#0b1020"; ctx.lineWidth = 2;
+      roundRect(ctx, cx - r, cy - r, player.size, player.size, 12); ctx.fill(); ctx.stroke();
 
-      // 아이콘(이모지)
       ctx.font = `${Math.floor(player.size*0.8)}px system-ui, Apple Color Emoji, Segoe UI Emoji`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      const emoji = player.onGround ? "🕹️" : "🌀";
-      ctx.fillStyle = "#0b1020";
-      ctx.fillText(emoji, cx, cy+1);
-
-      // 속도 표시(디버그)
-      // ctx.fillStyle = "#9ca3af"; ctx.fillText(`vx:${player.vx.toFixed(1)} vy:${player.vy.toFixed(1)}`, 60, 20);
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#0b1020";
+      ctx.fillText(player.onGround ? "🕹️" : "🌀", cx, cy+1);
     }
 
     function roundRect(ctx, x, y, w, h, r) {
@@ -385,15 +331,8 @@
       ctx.closePath();
     }
 
-    // 시작 버튼
-    document.getElementById("btnStart").addEventListener("click", init);
-
-    // 초기 위치 설정
-    player.y = groundY - player.size/2;
-
-    // iOS 등에서 자동 재생/권한 이슈 방지 안내
     if (location.protocol !== "https:") {
-      console.warn("HTTPS가 아닙니다. 카메라 권한이 거부될 수 있습니다. GitHub Pages(HTTPS)에서 테스트하세요.");
+      console.warn("HTTPS가 아닙니다. GitHub Pages(HTTPS)에서 테스트하세요.");
     }
   </script>
 </body>
